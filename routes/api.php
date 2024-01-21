@@ -14,5 +14,7 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+Route::get('m3', [DataController::class, 'getMC']);
+Route::get('km', [DataController::class, 'getKM']);
 
 
