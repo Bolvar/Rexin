@@ -16,3 +16,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DataController::class, 'index']);
 Route::get('/analisis', [DataController::class, 'analisis']);
+Route::get('/compare', [DataController::class, 'comparacion']);

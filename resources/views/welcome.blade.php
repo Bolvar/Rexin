@@ -64,18 +64,7 @@ Administracion Usuarios
             dataType: "json"
         })
             .done((data) => {
-
-                var datos = [];
-                $.each(data, function (index, value) {
-                    fecha = new Date(value.date);
-                    am5.time.add(fecha, "month", 1);
-
-                    datos.push({
-                        date: fecha.getTime(),
-                        value: parseInt(value.value)
-                    });
-                });
-                addChart("chartdiv", datos);
+                addChart("chartdiv", data);
             })
         $.ajax({
             async: false,
@@ -84,18 +73,7 @@ Administracion Usuarios
             dataType: "json"
         })
             .done((data) => {
-
-                var datos = [];
-                $.each(data, function (index, value) {
-                    fecha = new Date(value.date);
-                    am5.time.add(fecha, "month", 1);
-
-                    datos.push({
-                        date: fecha.getTime(),
-                        value: parseInt(value.value)
-                    });
-                });
-                addChart("chartdiv2", datos);
+                addChart("chartdiv2", data);
             })
     })
 
@@ -106,9 +84,6 @@ Administracion Usuarios
 
         const myTheme = am5.Theme.new(root);
 
-        myTheme.rule("AxisLabel", ["minor"]).setAll({
-            dy: 1
-        });
 
         myTheme.rule("Grid", ["x"]).setAll({
             strokeOpacity: 0.05
@@ -128,42 +103,49 @@ Administracion Usuarios
             panY: true,
             wheelX: "panX",
             wheelY: "zoomX",
-            maxTooltipDistance: 0,
-            pinchZoomX: true
+            maxTooltipDistance: 0
         }));
 
-        var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
-            maxDeviation: 0.2,
-            baseInterval: {
-                timeUnit: "month",
-                count: 1
-            },
-            renderer: am5xy.AxisRendererX.new(root, {
-                minorGridEnabled: true
-            }),
-            tooltip: am5.Tooltip.new(root, {})
-        }));
+        let xAxis = chart.xAxes.push(
+            am5xy.DateAxis.new(root, {
+                baseInterval: { timeUnit: "month", count: 1 },
+                renderer: am5xy.AxisRendererX.new(root, {})
+            })
+        );
 
         var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
             renderer: am5xy.AxisRendererY.new(root, {})
         }));
+        $.each(data, function (index, value) {
 
-        var series = chart.series.push(am5xy.LineSeries.new(root, {
-            name: "2023",
-            xAxis: xAxis,
-            yAxis: yAxis,
-            valueYField: "value",
-            valueXField: "date",
-            legendValueText: "{valueY}",
-            tooltip: am5.Tooltip.new(root, {
+            var datos = [];
+                $.each(value, function (index, valorcito) {
+                    fecha = new Date(valorcito.date);
+                    datos.push({
+                        mes: valorcito.mes,
+                        date: fecha.getTime(),
+                        value: parseInt(valorcito.value)
+                    });
+            });
+
+            var series = chart.series.push(am5xy.LineSeries.new(root, {
+                name: index,
+                xAxis: xAxis,
+                yAxis: yAxis,
+                valueYField: "value",
+                valueXField: "date",
+                legendValueText: "{valueY}",
+                tooltip: am5.Tooltip.new(root, {
                 pointerOrientation: "horizontal",
                 labelText: "{valueY}"
-            })
-        }));
+                })
+            }));
+            series.data.setAll(datos);
 
-        series.data.setAll(data);
+            series.appear();
+        });
 
-        series.appear();
+        xAxis.get("dateFormats")["month"] = "MMM";
 
         var cursor = chart.set("cursor", am5xy.XYCursor.new(root, {
             behavior: "none"

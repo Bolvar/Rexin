@@ -41,22 +41,64 @@ class DataController extends Controller
         return view('analisis', ['data' => $results]);
 
     }
+    public function comparacion(){
+        $datos = DB::table('data')
+        ->select(
+            'nombre_sujeba',
+            'sujeba',
+            DB::raw("SUM(CASE WHEN YEAR(fecha) = 2022 THEN totpes ELSE 0 END) as 'data1'"),
+            DB::raw("SUM(CASE WHEN YEAR(fecha) = 2023 THEN totpes ELSE 0 END) as 'data2'")
+        )
+        ->whereYear('fecha', '>=', 2022)
+        ->groupBy('nombre_sujeba', 'sujeba')
+        ->orderBy('nombre_sujeba')
+        ->orderBy('sujeba')
+        ->get();
+
+        return view('comparacion', ['data' => $datos]);
+
+    }
     public function getKM()
     {
+
+
+        $resultados = DB::table('data')
+        ->select(
+            DB::raw('YEAR(fecha) as Año'),
+            DB::raw('MONTH(fecha) as Mes'),
+            DB::raw('TIMESTAMP(CONCAT(YEAR(NOW()),"-", MONTH(fecha),"-01")) AS date'),
+            DB::raw('TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01")) AS original'),
+            DB::raw('SUM(numero) as value')
+        )
+        ->where('umd', '=', 'KM')
+        ->groupBy(DB::raw('YEAR(fecha)'), DB::raw('MONTH(fecha)'))
+        ->orderBy('Año', 'asc')
+        ->get();
+/*
+
         $resultados = DB::table('data')
         ->select(DB::raw('TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01")) AS date, UNIX_TIMESTAMP(TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01"))) as time, SUM(NUMERO) AS value'))
             ->where('umd', '=', "KM")
-            ->groupBy(DB::raw('MONTH(fecha)'))
+            ->groupBy(DB::raw('YEAR(fecha)','MONTH(fecha)'))
             ->get();
-        return response()->json($resultados);
+            dd();
+*/
+        return response()->json($resultados->groupBy('Año'));
     }
     public function getMC()
     {
         $resultados = DB::table('data')
-        ->select(DB::raw('TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01")) AS date, UNIX_TIMESTAMP(TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01"))) as time, SUM(NUMERO) AS value'))
-        ->where('umd', '=', "M3")
-            ->groupBy(DB::raw('MONTH(fecha)'))
-            ->get();
-        return response()->json($resultados);
+        ->select(
+            DB::raw('YEAR(fecha) as Año'),
+            DB::raw('MONTH(fecha) as Mes'),
+            DB::raw('TIMESTAMP(CONCAT(YEAR(NOW()),"-", MONTH(fecha),"-01")) AS date'),
+            DB::raw('TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01")) AS original'),
+            DB::raw('SUM(numero) as value')
+        )
+        ->where('umd', '=', 'M3')
+        ->groupBy(DB::raw('YEAR(fecha)'), DB::raw('MONTH(fecha)'))
+        ->orderBy('Año', 'asc')
+        ->get();
+        return response()->json($resultados->groupBy('Año'));
     }
 }
