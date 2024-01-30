@@ -58,10 +58,31 @@ class DataController extends Controller
         return view('comparacion', ['data' => $datos]);
 
     }
+    public function getComparacion(){
+        $datos = DB::table('data')
+        ->select(
+            'nombre_sujeba',
+            DB::raw("SUM(CASE WHEN YEAR(fecha) = 2022 THEN totpes ELSE 0 END) as 'data1'"),
+            DB::raw("SUM(CASE WHEN YEAR(fecha) = 2023 THEN totpes ELSE 0 END) as 'data2'")
+        )
+        ->whereYear('fecha', '>=', 2022)
+        ->groupBy('nombre_sujeba')
+        ->orderBy('nombre_sujeba')
+        ->get();
+
+        foreach ($datos as $key => $value) {
+            $value->data1 = intval($value->data1);
+            $value->data2 = intval($value->data2);
+        }
+        $media = $datos->avg('data2');
+        $empresasSuperiores = $datos->filter(function ($item) use ($media) {
+            return $item->data2 > $media;
+        });
+        return response()->json($empresasSuperiores->values());
+
+    }
     public function getKM()
     {
-
-
         $resultados = DB::table('data')
         ->select(
             DB::raw('YEAR(fecha) as Año'),

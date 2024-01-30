@@ -17,5 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('m3', [DataController::class, 'getMC']);
 Route::get('km', [DataController::class, 'getKM']);
 Route::get('pastThree', [DataController::class, 'getPastThree']);
+Route::get('comparacion', [DataController::class, 'getComparacion']);
 
 
