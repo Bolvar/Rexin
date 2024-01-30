@@ -68,21 +68,13 @@ class DataController extends Controller
             DB::raw('MONTH(fecha) as Mes'),
             DB::raw('TIMESTAMP(CONCAT(YEAR(NOW()),"-", MONTH(fecha),"-01")) AS date'),
             DB::raw('TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01")) AS original'),
-            DB::raw('SUM(numero) as value')
+            DB::raw('SUM(totpes) as value')
         )
         ->where('umd', '=', 'KM')
         ->groupBy(DB::raw('YEAR(fecha)'), DB::raw('MONTH(fecha)'))
         ->orderBy('Año', 'asc')
         ->get();
-/*
 
-        $resultados = DB::table('data')
-        ->select(DB::raw('TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01")) AS date, UNIX_TIMESTAMP(TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01"))) as time, SUM(NUMERO) AS value'))
-            ->where('umd', '=', "KM")
-            ->groupBy(DB::raw('YEAR(fecha)','MONTH(fecha)'))
-            ->get();
-            dd();
-*/
         return response()->json($resultados->groupBy('Año'));
     }
     public function getMC()
@@ -93,12 +85,38 @@ class DataController extends Controller
             DB::raw('MONTH(fecha) as Mes'),
             DB::raw('TIMESTAMP(CONCAT(YEAR(NOW()),"-", MONTH(fecha),"-01")) AS date'),
             DB::raw('TIMESTAMP(CONCAT(YEAR(fecha),"-", MONTH(fecha),"-01")) AS original'),
-            DB::raw('SUM(numero) as value')
+            DB::raw('SUM(totpes) as value')
         )
         ->where('umd', '=', 'M3')
         ->groupBy(DB::raw('YEAR(fecha)'), DB::raw('MONTH(fecha)'))
         ->orderBy('Año', 'asc')
         ->get();
         return response()->json($resultados->groupBy('Año'));
+    }
+    public function getPastThree()
+    {
+        $anioEspecifico = 2023; // Reemplazar con el año deseado
+
+        $resultados = DB::table('data')
+            ->select(
+                'nombre_sujeba as empresa',
+                DB::raw('SUM(totpes) as total')
+            )
+            ->whereYear('fecha', $anioEspecifico)
+            ->groupBy('nombre_sujeba')
+            ->get();
+
+        // Calcular la media
+        foreach ($resultados as $key => $value) {
+            $value->total = intval($value->total);
+        }
+        $media = $resultados->avg('total');
+
+        // Filtrar por empresas con total superior a la media
+        $empresasSuperiores = $resultados->filter(function ($item) use ($media) {
+            return $item->total > $media;
+        });
+
+        return response()->json($empresasSuperiores->values());
     }
 }
